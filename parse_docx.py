@@ -6,6 +6,7 @@ Created on Thu Jun 19 21:08:03 2025
 """
 
 import os
+import rosroutes as rr
 
 def find_first_and_last_colon_word(text_string):
     """
@@ -93,16 +94,16 @@ def extract_text_between_words(file_path, start_word, end_word, duty):
             # Extract the text between the end of the start word and the beginning of the end word
             segment = full_text[actual_start_word_end_index:end_index]
             #extracted_segments.append("-----------------------------------\n")
-            extracted_segments.append(duty[duty_index] + " ")
+            # extracted_segments.append(duty[duty_index] + " ")
             first_colon_word, last_colon_word = find_first_and_last_colon_word(segment)
-            extracted_segments.append("  "+ first_colon_word + "  " + last_colon_word + '\n')
+            extracted_segments.append(duty[duty_index] + "  "+ first_colon_word + "  " + last_colon_word)
             duty_index += 1
             
 
             # Update current_position to search for the next pair after the current end word
             current_position = end_index + len(end_word)
 
-        return "".join(extracted_segments)
+        return extracted_segments
 
     except Exception as e:
         print(f"An error occurred while processing the file: {e}")
@@ -142,14 +143,20 @@ def search_word_in_file(file_path, search_word):
         print(f"An error occurred while reading the file: {e}")
         return []
 
-
-filename = 'friday-journal.txt'
+filename = '04_mon_fri_vac_journals.txt'
 duty = search_word_in_file(filename, 'Duty')
 times = extract_text_between_words(filename, 'Spread', 'Route', duty)
+print(times)
+base_routes = rr.create_routes_list(filename)
+ss = ''
+for item in zip(times, base_routes):
+    s = item[0]
+    for route in item[1]:
+        s += " " + route
+    ss += s + '\n'
 
-
-f = open('Friday_duty_times.txt', 'w')
-f.write(times)
+f = open('14_mon_fri_vac-db.txt', 'w')
+f.write(ss)
 f.close()
 
 
