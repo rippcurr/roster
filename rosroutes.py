@@ -8,26 +8,26 @@ import re
 
 routes = ['199', '185', '182', '191', '192', '155', 'B1', '156', '190X', '181X']
 
-def find_duty_in_blocks(target_list: list[str], search_string: str) -> int:
-    """
-    Searches a list of strings for the first occurrence of a specific text string.
+# def find_duty_in_blocks(target_list: list[str], search_string: str) -> int:
+#     """
+#     Searches a list of strings for the first occurrence of a specific text string.
 
-    Args:
-        target_list: The list of strings to search within.
-        search_string: The text string to search for.
+#     Args:
+#         target_list: The list of strings to search within.
+#         search_string: The text string to search for.
 
-    Returns:
-        The index of the first occurrence of the search_string in the target_list.
-        Returns -1 if the search_string is not found in the list.
-    """
-    try:
-        # The .index() method returns the index of the first occurrence of the item.
-        # It raises a ValueError if the item is not found.
-        return target_list.index(search_string)
-    except ValueError:
-        return -1
+#     Returns:
+#         The index of the first occurrence of the search_string in the target_list.
+#         Returns -1 if the search_string is not found in the list.
+#     """
+#     try:
+#         # The .index() method returns the index of the first occurrence of the item.
+#         # It raises a ValueError if the item is not found.
+#         return target_list.index(search_string)
+#     except ValueError:
+#         return -1
 
-def find_matches_in_string(main_string: str, search_list: list[str]) -> list[str]:
+def find_base_runs(main_string: str, search_list: list[str]) -> list[str]:
     """
     Searches a main string for the presence of each string in a given list.
 
@@ -66,7 +66,7 @@ def extract_text_blocks_from_file(file_path):
           Returns an empty list if the file is not found or no blocks are found.
   """
   blocks = []
-  delimiter = "Depot: MONA VALE BUS DEPOT"
+  delimiter = "Depot:  MONA VALE BUS DEPOT"
   current_block = []
   in_block = False
 
@@ -96,7 +96,7 @@ def extract_text_blocks_from_file(file_path):
 
   return blocks
 
-def find_three_digits_n_pattern(main_string: str) -> list[str]:
+def find_school_runs(main_string: str) -> list[str]:
     """
     Searches a string for patterns consisting of exactly three digits followed by the character 'n'.
 
@@ -115,23 +115,20 @@ def find_three_digits_n_pattern(main_string: str) -> list[str]:
     matches = re.findall(pattern, main_string)
     return matches
 
-def extract_duty(blocks, duty):
-    for item in blocks:
-        pass
-        
+
 def create_routes_list(filename):
     print(f"--- Extracting blocks from '{filename}' ---")
     mona_vale_blocks_1 = extract_text_blocks_from_file(filename)    
     r = []
     for block in mona_vale_blocks_1:
-        res = find_matches_in_string(block, routes)
-        sch = find_three_digits_n_pattern(block)
+        res = find_base_runs(block, routes)
+        sch = find_school_runs(block)
         r.append(res + sch)
     return r
 
 if __name__ == '__main__':
 
-    file_name = 'friday-journal.txt'
+    file_name = '00_mon_thu_journals.txt'
     r = create_routes_list(file_name)
     print(r)
     
