@@ -11,13 +11,25 @@ import platform
 import sys
 import os
 import argparse
-import openpyxl
 import math
-from datetime import datetime, timedelta
+import rosutils as ru
+import rosdate as rd
 
-
+daysoff = ['OFF', 'ADO', 'xxxOFF', 'uwsOFF', 'xxxADO', 'uwsADO', 'xxxOFF9', 'oAsg', 'A/L', 'PFL']
+db_files = ['10_mon_thu-db.txt', '11_fri-db.txt', '12_sat-db.txt', '13_sun-db.txt', '14_mon_fri_vac-db.txt' ]
 __version__ = '0.1'
 
+def check_for_day_off(code):
+  for s in daysoff:
+    # It's good practice to ensure elements in the list are also strings
+    # if you expect direct string comparison. If not, handle type mismatch.
+    if not isinstance(s, str):
+      print(f"Warning: Non-string element '{s}' found in list_of_strings. Skipping comparison.")
+      continue
+    if code == s:
+        return True
+  return False
+    
 def clean_roster_list(input_list: list) -> list:
     """
     Removes NaN (Not a Number) values from a given list.
@@ -45,8 +57,10 @@ def clean_roster_list(input_list: list) -> list:
             s = cleaned_list[i]
             first_char = s[0]
             if first_char == 'D' or first_char == 'H':
-                if len(cleaned_list[i]) > 4:
-                    cleaned_list[i] = s[:4]
+                if len(s) > 4:
+                    s = s[:4]
+            s = ru.remove_newlines(s)
+            cleaned_list[i] = s
 
     return cleaned_list
 
@@ -78,67 +92,6 @@ def get_row_as_list(df: pd.DataFrame, row_index: int) -> list:
         print(f"An unexpected error occurred: {e}")
         return []
 
-def get_day_of_week(date_strings: list[str]) -> list[str]:
-    """
-    Converts a list of date strings (dd-mm-yyyy) into a list of corresponding
-    days of the week.
-
-    Args:
-        date_strings: A list of date strings in 'dd-mm-yyyy' format.
-
-    Returns:
-        A list containing the full names of the days of the week (e.g., 'Monday', 'Tuesday').
-        Returns an empty list if an invalid date format is encountered for any date.
-    """
-    days_of_week = []
-    for date_str in date_strings:
-        try:
-            # Parse the date string into a datetime object
-            date_object = datetime.strptime(date_str, "%d-%m-%Y")
-            # Get the full weekday name
-            day_name = date_object.strftime("%A")
-            
-            days_of_week.append(day_name)
-        except ValueError:
-            print(f"Error: Invalid date format for '{date_str}'. Expected 'dd-mm-yyyy'.")
-            # You might want to handle this differently, e.g., append None or raise an error.
-            # For this example, we'll return an empty list if any date is invalid
-            # to indicate a failure in processing the whole list.
-            return []
-    return days_of_week
-
-def generate_sequential_dates(start_date_str: str, n_days: int) -> list[str]:
-    """
-    Generates a list of sequential string dates starting from a given date.
-
-    Args:
-        start_date_str (str): The starting date in "dd-mm-yyyy" format.
-        n_days (int): The number of sequential days to generate (including the start date).
-
-    Returns:
-        list[str]: A list of sequential dates in "dd-mm-yyyy" string format.
-                   Returns an empty list if n_days is less than or equal to 0.
-
-    Raises:
-        ValueError: If the start_date_str is not in the "dd-mm-yyyy" format.
-    """
-    if n_days <= 0:
-        return []
-
-    try:
-        # Convert the start_date_str to a datetime object
-        start_date = datetime.strptime(start_date_str, "%d-%m-%Y")
-    except ValueError:
-        raise ValueError("Invalid start_date_str format. Expected 'dd-mm-yyyy'.")
-
-    date_list = []
-    for i in range(n_days):
-        # Calculate the next date
-        current_date = start_date + timedelta(days=i)
-        # Format the datetime object back to "dd-mm-yyyy" string
-        date_list.append(current_date.strftime("%d-%m-%Y"))
-
-    return date_list
 
 def find_row_index_by_search_term(df: pd.DataFrame, search_term: str) -> list[int]:
     """
@@ -169,79 +122,47 @@ def find_row_index_by_search_term(df: pd.DataFrame, search_term: str) -> list[in
             found_indices.append(index)
     return found_indices
 
-def find_row_with_string(file_path, search_string):
-    """
-    Searches a text file for the first occurrence of a given string (case-insensitive)
-    and returns the entire row of text that contains it.
-
-    Args:
-        file_path (str): The path to the text file.
-        search_string (str): The string to search for within the file's lines.
-
-    Returns:
-        str or None: The first line (row) from the file that contains the
-                     search_string, or None if the file is not found,
-                     an error occurs, or the string is not found in any row.
-    """
-    if not os.path.exists(file_path):
-        print(f"Error: File not found at '{file_path}'")
-        return None
-
-    # Convert the search string to lowercase for case-insensitive matching
-    search_string_lower = search_string.lower()
-
-    try:
-        with open(file_path, 'r' ) as file:
-            for line_num, line in enumerate(file, 1):
-                # Check if the lowercase version of the line contains the lowercase search string
-                if search_string_lower in line.lower():
-                    return line.strip() # Return the line and remove leading/trailing whitespace and newlines
-        
-        # If the loop finishes, the string was not found
-        #print(f"The string '{search_string}' was not found in the file '{file_path}'.")
-        return f"*** {search_string} Shift not found ***"
-
-    except Exception as e:
-        print(f"An error occurred while reading the file: {e}")
-        return None
-
-def match_shifts(days, shifts):
+def match_shifts(days, shifts, vac=False):
     
     times = []
   
     for el in zip(days, shifts):
-        if el[0] == 'Friday':
-            if (el[1] == 'OFF'or el[1] == 'ADO'):
+        if el[0] == 'Friday' and vac==False:
+            if (check_for_day_off(el[1])):
                 res = el[1]
             else:
-                res = find_row_with_string('Friday_duty_times.txt', el[1])
+                res = ru.find_row_with_string(db_files[1], el[1])
            # print(f'{el[0]}: {res}')
             times.append(res)
         elif el[0] == 'Saturday':
-            if (el[1] == 'OFF'or el[1] == 'ADO'):
+            if (check_for_day_off(el[1])):
                 res = el[1]
             else:
-                res = find_row_with_string('Saturday_duty_times.txt', el[1])
+                res = ru.find_row_with_string(db_files[2], el[1])
           #  print(f'{el[0]}: {res}')
             times.append(res)
         elif el[0] == 'Sunday':
-            if (el[1] == 'OFF'or el[1] == 'ADO'):
+            if (check_for_day_off(el[1])):
                 res = el[1]
             else:
-                res = find_row_with_string('Sunday_duty_times.txt', el[1])
+                res = ru.find_row_with_string(db_files[3], el[1])
           #  print(f'{el[0]}: {res}')
             times.append(res)
-        else:
-            if (el[1] == 'OFF'or el[1] == 'ADO'):
+        elif vac==True:
+            if (check_for_day_off(el[1])):
                 res = el[1]
             else:
-                res = find_row_with_string('Mon-Thur_duty_times.txt', el[1])
+                res = ru.find_row_with_string(db_files[4], el[1])
+                times.append(res)
+        else:
+            if (check_for_day_off(el[1])):
+                res = el[1]
+            else:
+                res = ru.find_row_with_string(db_files[0], el[1])
           #  print(f'{el[0]}: {res}')
             times.append(res)
     return times            
         
-        
-
 def pretty_print(driver, dates, days, times):
     print(f'Driver:  {driver}:')
     for item in zip(dates,days, times):
@@ -261,6 +182,7 @@ if __name__ == '__main__':
     
     n = 3
     start_date = "22-06-2025"
+    vac_start = "06-07-2025"
 
 
     logger.add(sys.stderr, format="{time} {level} {message}", filter="my_module", level="INFO")
@@ -271,17 +193,16 @@ if __name__ == '__main__':
     logger.info(f'filename:         {file}')
 
     df = pd.read_excel(file)
-    get_index = find_row_index_by_search_term(df, "MONAGHAN")
+    get_index = find_row_index_by_search_term(df, "ESS")
     shifts = get_row_as_list(df, get_index[0])
-    dates = generate_sequential_dates(start_date, 28)
-    days = get_day_of_week(dates)
+    dates = rd.generate_sequential_dates(start_date, 28, True)
+    days = rd.get_day_of_week(dates)
     clean_shifts = clean_roster_list(shifts)
-    print(clean_shifts)
     
     driver_name = clean_shifts[0]
     clean_shifts = clean_shifts[n:]
     
-    times = match_shifts(days, clean_shifts)
+    times = match_shifts(days, clean_shifts, vac=False)
    
     pretty_print(driver_name,dates, days, times)
   
