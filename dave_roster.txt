@@ -1,0 +1,29 @@
+Driver:  MONAGHAN, D R J:
+| 22-06-2025 | Sunday    | Duty:  H860  7:25  17:38 B1      							|
+| 23-06-2025 | Monday    | Duty:  H164  7:22  19:13 199 B1  							|
+| 24-06-2025 | Tuesday   | Duty:  H166  7:23  19:13 199 192 155 B1 156 790n 715n 667n 	|
+| 25-06-2025 | Wednesday | Duty:  H138  6:57  18:46 B1 646n 							|
+| 26-06-2025 | Thursday  | Duty:  H184  7:45  19:43 185 182 191 B1 156 					|
+| 27-06-2025 | Friday    | Duty:  H168  7:42  18:56 B1 190X 744n 649n 					|
+| 28-06-2025 | Saturday  | xxxOFF                          								|
+| 29-06-2025 | Sunday    | uwsOFF                           							|
+| 30-06-2025 | Monday    | xxxOFF9                          							|
+| 01-07-2025 | Tuesday   | Duty:  H124  6:43  18:38 B1 181X 659n 						|
+| 02-07-2025 | Wednesday | Duty:  H114  6:12  17:49 B1 190X 723n 						|
+| 03-07-2025 | Thursday  | Duty:  H102  5:40  17:33 B1      							|
+| 04-07-2025 | Friday    | Duty:  H106  5:53  17:32 B1       							|
+| 05-07-2025 | Saturday  | Duty:  H788  9:35  18:24 B1      							|
+| 06-07-2025 | Sunday    | uwsOFF                           							|
+| 07-07-2025 | Monday    | Duty:  D130  7:09  19:06 199 185 182 156 181X 				|
+| 08-07-2025 | Tuesday   | xxxADO                           							|
+| 09-07-2025 | Wednesday | xxxOFF                           							|
+| 10-07-2025 | Thursday  | Duty:  D138  7:30  18:58 199 191 192 						|
+| 11-07-2025 | Friday    | Duty:  D122  6:53  18:46 199 185 156 						|
+| 12-07-2025 | Saturday  | Duty:  H722  5:08  13:35 199 B1  							|
+| 13-07-2025 | Sunday    | uwsOFF                           							|
+| 14-07-2025 | Monday    | Duty:  D110  6:28  18:11 199 185 190X 181X 					|
+| 15-07-2025 | Tuesday   | Duty:  D150  8:23  19:41 199 190X 							|
+| 16-07-2025 | Wednesday | Duty:  D150  8:23  19:41 199 190X 							|
+| 17-07-2025 | Thursday  | Duty:  D150  8:23  19:41 199 190X 							|
+| 18-07-2025 | Friday    | xxxOFF                           							|
+| 19-07-2025 | Saturday  | Duty:  H768  7:37  16:32 B1      							|
