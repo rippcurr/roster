@@ -8,25 +8,6 @@ import re
 
 routes = ['199', '185', '182', '191', '192', '155', 'B1', '156', '190X', '181X']
 
-# def find_duty_in_blocks(target_list: list[str], search_string: str) -> int:
-#     """
-#     Searches a list of strings for the first occurrence of a specific text string.
-
-#     Args:
-#         target_list: The list of strings to search within.
-#         search_string: The text string to search for.
-
-#     Returns:
-#         The index of the first occurrence of the search_string in the target_list.
-#         Returns -1 if the search_string is not found in the list.
-#     """
-#     try:
-#         # The .index() method returns the index of the first occurrence of the item.
-#         # It raises a ValueError if the item is not found.
-#         return target_list.index(search_string)
-#     except ValueError:
-#         return -1
-
 def find_base_runs(main_string: str, search_list: list[str]) -> list[str]:
     """
     Searches a main string for the presence of each string in a given list.
