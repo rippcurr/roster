@@ -6,29 +6,24 @@ Created on Wed Jun 25 21:56:38 2025
 """
 from datetime import datetime, timedelta, date
 
-def is_date_after(seq_date: date, given_date: date) -> bool:
+def is_date_between(start_date: date, end_date: date, check_date: date) -> bool:
     """
-    Checks if a given date falls after a date provided as a string.
+    Determines if a given date falls between two other dates (inclusive).
 
     Args:
-        date_string: The reference date in 'dd-mm-yyyy' format.
-        given_date: The date to check against the reference date.
+        start_date: The starting date (date(YYYY, MM, DD)).
+        end_date: The ending date (date(YYYY, MM, DD)).
+        check_date: The date to check (date(YYYY, MM, DD)).
 
     Returns:
-        True if the given_date is after the date_string, False otherwise.
-        Returns False if the date_string is in an invalid format.
+        True if check_date falls between or is equal to start_date and end_date,
+        False otherwise.
     """
-    try:
-        # Convert the date string to a datetime.date object
-        # reference_date = datetime.strptime(date_string, '%d-%m-%Y').date()
-        
-        # Compare the two date objects
-        return given_date > seq_date
-        
-    except ValueError:
-        # Handle the case where the date string is not in the correct format
-        print(f"Error: The date string '{date_string}' is not in 'dd-mm-yyyy' format.")
-        return False
+    # Ensure start_date is not after end_date for proper comparison
+    if start_date > end_date:
+        start_date, end_date = end_date, start_date
+
+    return start_date <= check_date <= end_date
 
 def get_day_of_week(date_strings: list[str]) -> list[str]:
     """
