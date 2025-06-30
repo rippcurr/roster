@@ -12,11 +12,14 @@ import sys
 import os
 import argparse
 import math
+from datetime import datetime, date
 import rosutils as ru
 import rosdate as rd
 
 daysoff = ['OFF', 'ADO', 'xxxOFF', 'uwsOFF', 'xxxADO', 'uwsADO', 'xxxOFF9', 'oAsg', 'A/L', 'PFL']
 db_files = ['10_mon_thu-db.txt', '11_fri-db.txt', '12_sat-db.txt', '13_sun-db.txt', '14_mon_fri_vac-db.txt' ]
+DEFAULT_DRIVER = "MONAGHAN"
+
 __version__ = '0.1'
 
 def check_for_day_off(code):
@@ -122,59 +125,64 @@ def find_row_index_by_search_term(df: pd.DataFrame, search_term: str) -> list[in
             found_indices.append(index)
     return found_indices
 
-def match_shifts(days, shifts, vac=False):
-    
-    times = []
-  
-    for el in zip(days, shifts):
-        if el[0] == 'Friday' and vac==False:
-            if (check_for_day_off(el[1])):
-                res = el[1]
-            else:
-                res = ru.find_row_with_string(db_files[1], el[1])
-           # print(f'{el[0]}: {res}')
-            times.append(res)
-        elif el[0] == 'Saturday':
-            if (check_for_day_off(el[1])):
-                res = el[1]
-            else:
-                res = ru.find_row_with_string(db_files[2], el[1])
-          #  print(f'{el[0]}: {res}')
-            times.append(res)
-        elif el[0] == 'Sunday':
-            if (check_for_day_off(el[1])):
-                res = el[1]
-            else:
-                res = ru.find_row_with_string(db_files[3], el[1])
-          #  print(f'{el[0]}: {res}')
-            times.append(res)
-        elif vac==True:
-            if (check_for_day_off(el[1])):
-                res = el[1]
-            else:
-                res = ru.find_row_with_string(db_files[4], el[1])
-                times.append(res)
+def match_term_shift(day, shift):
+
+    if day == 'Saturday':
+        if (check_for_day_off(shift)):
+            res = shift
         else:
-            if (check_for_day_off(el[1])):
-                res = el[1]
-            else:
-                res = ru.find_row_with_string(db_files[0], el[1])
-          #  print(f'{el[0]}: {res}')
-            times.append(res)
-    return times            
-        
+            res = ru.find_row_with_string(db_files[2], shift)
+    elif day == 'Sunday':
+        if (check_for_day_off(shift)):
+            res = shift
+        else:
+            res = ru.find_row_with_string(db_files[3], shift)
+    elif day == 'Friday':
+        if (check_for_day_off(shift)):
+            res = shift
+        else:
+            res = ru.find_row_with_string(db_files[1], shift)
+    else: #if everything else has been checked then it falls through to Mon-Thur
+        if (check_for_day_off(shift)):
+            res = shift
+        else:
+            res = ru.find_row_with_string(db_files[0], shift)
+  
+    return res            
+    
+          
+def match_vac_shift(day, shift):
+    
+    if day == 'Saturday':
+        if (check_for_day_off(shift)):
+            res = shift
+        else:
+            res = ru.find_row_with_string(db_files[2], shift)
+    elif day == 'Sunday':
+        if (check_for_day_off(shift)):
+            res = shift
+        else:
+            res = ru.find_row_with_string(db_files[3], shift)
+    else: #if everything else has been checked then it falls through to Mon-Fri
+        if (check_for_day_off(shift)):
+            res = shift
+        else:
+            res = ru.find_row_with_string(db_files[4], shift)
+  
+    return res            
+            
 def pretty_print(driver, dates, days, times):
     print(f'Driver:  {driver}:')
     for item in zip(dates,days, times):
-        print(f'| {item[0]} | {item[1]:<9} | {item[2]:<32} |')
+        print(f'| {item[0]} | {item[1]:<9} | {item[2]:<60} |')
     
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='parse schedule',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     
-    parser.add_argument('f_roster', metavar='ROSTER', nargs='+',
-                        help='Name of roster file')
+    parser.add_argument('f_roster', metavar='ROSTER', nargs='+', help='Name of roster file')
+    parser.add_argument('-d', '--driver', default=DEFAULT_DRIVER, help=f'set driver default is {DEFAULT_DRIVER}.')
 
     args = parser.parse_args()
     
@@ -182,7 +190,8 @@ if __name__ == '__main__':
     
     n = 3
     start_date = "22-06-2025"
-    vac_start = "06-07-2025"
+    vac_start = date(2025, 7, 6)
+    vac_fin   = date(2025, 7, 20)
 
 
     logger.add(sys.stderr, format="{time} {level} {message}", filter="my_module", level="INFO")
@@ -193,16 +202,31 @@ if __name__ == '__main__':
     logger.info(f'filename:         {file}')
 
     df = pd.read_excel(file)
-    get_index = find_row_index_by_search_term(df, "ESS")
+    get_index = find_row_index_by_search_term(df, args.driver)
     shifts = get_row_as_list(df, get_index[0])
-    dates = rd.generate_sequential_dates(start_date, 28, True)
+    dates = rd.generate_sequential_dates(start_date, 28)
     days = rd.get_day_of_week(dates)
     clean_shifts = clean_roster_list(shifts)
     
     driver_name = clean_shifts[0]
     clean_shifts = clean_shifts[n:]
     
-    times = match_shifts(days, clean_shifts, vac=False)
-   
-    pretty_print(driver_name,dates, days, times)
+    duty = []
+    for el in zip(days, dates, clean_shifts):
+        
+        check_date = datetime.strptime(el[1], "%d-%m-%Y").date()
+        check_res = rd.is_date_between(vac_start, vac_fin, check_date)
+
+        if check_res:
+           res = match_vac_shift(el[0], el[2])
+           # print(res)
+        else:
+            res = match_term_shift(el[0], el[2])
+            # print(res)
+            
+        duty.append(res)
+           
+        
+           
+    pretty_print(driver_name,dates, days, duty)
   
