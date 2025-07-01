@@ -6,6 +6,9 @@ Created on Wed Jun 25 21:56:38 2025
 """
 from datetime import datetime, timedelta, date
 
+def format_date(date: str) -> date:
+    return datetime.strptime(date, "%d-%m-%Y").date()
+
 def is_date_between(start_date: date, end_date: date, check_date: date) -> bool:
     """
     Determines if a given date falls between two other dates (inclusive).
