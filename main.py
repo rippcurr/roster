@@ -20,7 +20,7 @@ daysoff = ['OFF', 'ADO', 'xxxOFF', 'uwsOFF', 'xxxADO', 'uwsADO', 'xxxOFF9', 'oAs
 db_files = ['10_mon_thu-db.txt', '11_fri-db.txt', '12_sat-db.txt', '13_sun-db.txt', '14_mon_fri_vac-db.txt' ]
 DEFAULT_DRIVER = "MONAGHAN"
 
-__version__ = '0.1'
+__version__ = '0.2'
 
 def check_for_day_off(code):
   for s in daysoff:
