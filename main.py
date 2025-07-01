@@ -15,6 +15,7 @@ import math
 from datetime import datetime, date
 import rosutils as ru
 import rosdate as rd
+import json
 
 daysoff = ['OFF', 'ADO', 'xxxOFF', 'uwsOFF', 'xxxADO', 'uwsADO', 'xxxOFF9', 'oAsg', 'A/L', 'PFL']
 db_files = ['10_mon_thu-db.txt', '11_fri-db.txt', '12_sat-db.txt', '13_sun-db.txt', '14_mon_fri_vac-db.txt' ]
@@ -182,16 +183,20 @@ if __name__ == '__main__':
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     
     parser.add_argument('f_roster', metavar='ROSTER', nargs='+', help='Name of roster file')
-    parser.add_argument('-d', '--driver', default=DEFAULT_DRIVER, help=f'set driver default is {DEFAULT_DRIVER}.')
-
+    parser.add_argument('-d', '--driver', default=DEFAULT_DRIVER, help=f'set driver. Default is {DEFAULT_DRIVER}.')
+ 
     args = parser.parse_args()
     
     file = args.f_roster[0]
+
+    cfg = open("config.json", 'r')
+    jdata = json.load(cfg)
     
-    n = 3
-    start_date = "22-06-2025"
-    vac_start = date(2025, 7, 6)
-    vac_fin   = date(2025, 7, 20)
+    start_date = jdata['date']['roster_start']
+    vac_start = rd.format_date(jdata['date']['vac_start'])
+    vac_fin   = rd.format_date(jdata['date']['vac_finish'])
+
+    n = jdata['clean']['route_clean_depth']
 
 
     logger.add(sys.stderr, format="{time} {level} {message}", filter="my_module", level="INFO")
@@ -199,7 +204,11 @@ if __name__ == '__main__':
     logger.info(f'Starting {os.path.basename(__file__)} Version: {__version__}...')
     logger.info(f'platform: {platform.system()}')
 
-    logger.info(f'filename:         {file}')
+    logger.info(f'filename:          {file}')
+    logger.info(f'Driver:            {args.driver}')
+    logger.info(f'Roster Start Date: {rd.format_date(start_date)}')
+    logger.info(f'Vac Start Date:    {vac_start}')
+    logger.info(f'Vac End   Date:    {vac_fin}')
 
     df = pd.read_excel(file)
     get_index = find_row_index_by_search_term(df, args.driver)
@@ -214,7 +223,7 @@ if __name__ == '__main__':
     duty = []
     for el in zip(days, dates, clean_shifts):
         
-        check_date = datetime.strptime(el[1], "%d-%m-%Y").date()
+        check_date = rd.format_date(el[1])
         check_res = rd.is_date_between(vac_start, vac_fin, check_date)
 
         if check_res:
@@ -225,8 +234,6 @@ if __name__ == '__main__':
             # print(res)
             
         duty.append(res)
-           
-        
-           
+                     
     pretty_print(driver_name,dates, days, duty)
   
