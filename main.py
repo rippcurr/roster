@@ -173,10 +173,20 @@ def match_vac_shift(day, shift):
     return res            
             
 def pretty_print(driver, dates, days, times):
-    print(f'Driver:  {driver}:')
+
+    dash = '-' * 89
+
+    print(dash)
+    print(f'| Driver:            {driver:<66} |')
+    print(f'| Roster start date: {dates[0]:<66} |')
+    print(dash)
+    print(dash)
+    print('|   Dates    |   Day     |     Duty    |    Times  |    Service                         |' )
+    print(dash)
     for item in zip(dates,days, times):
         print(f'| {item[0]} | {item[1]:<9} | {item[2]:<60} |')
-    
+    print(dash)
+   
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='parse schedule',
