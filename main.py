@@ -17,7 +17,7 @@ import rosutils as ru
 import rosdate as rd
 import json
 
-daysoff = ['OFF', 'ADO', 'xxxOFF', 'uwsOFF', 'xxxADO', 'uwsADO', 'xxxOFF9', 'oAsg', 'A/L', 'PFL']
+daysoff = ['OFF', 'ADO', 'xxxOFF', 'uwsOFF', 'xxxADO', 'uwsADO', 'xxxOFF9', 'oAsg', 'A/L', 'PFL', 'LSL', 'OFFL', 'WOPL', 'WOP' ]
 db_files = ['10_mon_thu-db.txt', '11_fri-db.txt', '12_sat-db.txt', '13_sun-db.txt', '14_mon_fri_vac-db.txt' ]
 DEFAULT_DRIVER = "MONAGHAN"
 
@@ -172,19 +172,45 @@ def match_vac_shift(day, shift):
   
     return res            
             
+def pad_str_whitespace(str, max):
+    white_space = ' '
+    str_len = len(str)
+    pad = max - str_len
+    return str + white_space * pad
+
 def pretty_print(driver, dates, days, times):
 
-    dash = '-' * 89
+    #create print strings
+    print_strs = []
+    print_str_length = 0
+    for item in zip(dates,days, times):
+        print(item)
+        print_str = f'| {item[0]} | {item[1]:<9} | {item[2]} '
+        print_strs.append(print_str)
+
+        # determine the max length
+        if len(print_str) > print_str_length:
+            print_str_length = len(print_str)
+
+
+    #set min pad width
+    if print_str_length < 63:
+        print_str_length = 63
+    print(f'max sting length={print_str_length}')
+
+    #pad each string with whitespace out to max string length
+
+    dash = '-' * (print_str_length +1)
 
     print(dash)
-    print(f'| Driver:            {driver:<66} |')
-    print(f'| Roster start date: {dates[0]:<66} |')
+    print(pad_str_whitespace(f'| Driver:            {driver}', print_str_length) + '|')
+    print(pad_str_whitespace(f'| Roster start date: {dates[0]:}', print_str_length) + '|')
     print(dash)
+    
+    print(pad_str_whitespace('|   Date     |   Day     |     Duty     Sign in/out    Run(s) ', print_str_length) + '|')
     print(dash)
-    print('|   Dates    |   Day     |     Duty    |    Times  |    Service                         |' )
-    print(dash)
-    for item in zip(dates,days, times):
-        print(f'| {item[0]} | {item[1]:<9} | {item[2]:<60} |')
+    for strng in print_strs:
+        print(pad_str_whitespace(strng, print_str_length) + '|')
     print(dash)
    
 
