@@ -1,0 +1,10 @@
+{
+    "date":{
+        "roster_start": "22-06-2025",
+        "vac_start": "06-07-2025",
+        "vac_finish":"20-07-2025"
+    },
+    "clean":{
+        "route_clean_depth": 3
+    }
+}
