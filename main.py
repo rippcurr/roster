@@ -17,7 +17,7 @@ import rosutils as ru
 import rosdate as rd
 import json
 
-daysoff = ['OFF', 'ADO', 'xxxOFF', 'uwsOFF', 'xxxADO', 'uwsADO', 'xxxOFF9', 'oAsg', 'A/L', 'PFL', 'LSL', 'OFFL', 'WOPL', 'WOP' ]
+daysoff = ['OFF', 'ADO', 'xxxOFF', 'uwsOFF', 'xxxADO', 'uwsADO', 'xxxOFF9', 'xxxOFF8', 'oAsg', 'A/L', 'PFL', 'LSL', 'OFFL', 'WOPL', 'WOP' ]
 db_files = ['10_mon_thu-db.txt', '11_fri-db.txt', '12_sat-db.txt', '13_sun-db.txt', '14_mon_fri_vac-db.txt' ]
 DEFAULT_DRIVER = "MONAGHAN"
 
@@ -64,7 +64,7 @@ def clean_roster_list(input_list: list) -> list:
                 if len(s) > 4:
                     s = s[:4]
             s = ru.remove_newlines(s)
-            cleaned_list[i] = s
+            cleaned_list[i] = str(s)
 
     return cleaned_list
 
@@ -132,22 +132,22 @@ def match_term_shift(day, shift):
         if (check_for_day_off(shift)):
             res = shift
         else:
-            res = ru.find_row_with_string(db_files[2], shift)
+            res = ru.find_row_with_string(db_files[2], str(shift))
     elif day == 'Sunday':
         if (check_for_day_off(shift)):
             res = shift
         else:
-            res = ru.find_row_with_string(db_files[3], shift)
+            res = ru.find_row_with_string(db_files[3], str(shift))
     elif day == 'Friday':
         if (check_for_day_off(shift)):
             res = shift
         else:
-            res = ru.find_row_with_string(db_files[1], shift)
+            res = ru.find_row_with_string(db_files[1], str(shift))
     else: #if everything else has been checked then it falls through to Mon-Thur
         if (check_for_day_off(shift)):
             res = shift
         else:
-            res = ru.find_row_with_string(db_files[0], shift)
+            res = ru.find_row_with_string(db_files[0], str(shift))
   
     return res            
     
@@ -158,17 +158,17 @@ def match_vac_shift(day, shift):
         if (check_for_day_off(shift)):
             res = shift
         else:
-            res = ru.find_row_with_string(db_files[2], shift)
+            res = ru.find_row_with_string(db_files[2], str(shift))
     elif day == 'Sunday':
         if (check_for_day_off(shift)):
             res = shift
         else:
-            res = ru.find_row_with_string(db_files[3], shift)
+            res = ru.find_row_with_string(db_files[3], str(shift))
     else: #if everything else has been checked then it falls through to Mon-Fri
         if (check_for_day_off(shift)):
             res = shift
         else:
-            res = ru.find_row_with_string(db_files[4], shift)
+            res = ru.find_row_with_string(db_files[4], str(shift))
   
     return res            
             
@@ -184,7 +184,6 @@ def pretty_print(driver, dates, days, times):
     print_strs = []
     print_str_length = 0
     for item in zip(dates,days, times):
-        print(item)
         print_str = f'| {item[0]} | {item[1]:<9} | {item[2]} '
         print_strs.append(print_str)
 
@@ -192,14 +191,11 @@ def pretty_print(driver, dates, days, times):
         if len(print_str) > print_str_length:
             print_str_length = len(print_str)
 
-
     #set min pad width
     if print_str_length < 63:
         print_str_length = 63
-    print(f'max sting length={print_str_length}')
-
+ 
     #pad each string with whitespace out to max string length
-
     dash = '-' * (print_str_length +1)
 
     print(dash)
@@ -234,7 +230,6 @@ if __name__ == '__main__':
 
     n = jdata['clean']['route_clean_depth']
 
-
     logger.add(sys.stderr, format="{time} {level} {message}", filter="my_module", level="INFO")
     logger.add("roster.log")
     logger.info(f'Starting {os.path.basename(__file__)} Version: {__version__}...')
@@ -252,7 +247,7 @@ if __name__ == '__main__':
     dates = rd.generate_sequential_dates(start_date, 28)
     days = rd.get_day_of_week(dates)
     clean_shifts = clean_roster_list(shifts)
-    
+  
     driver_name = clean_shifts[0]
     clean_shifts = clean_shifts[n:]
     
